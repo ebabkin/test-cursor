@@ -126,3 +126,33 @@ Response:
 ├── package.json          
 └── README.md
 ```
+
+## Testing
+
+To run tests locally:
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+## API Documentation
+
+The API documentation is available through Swagger UI. To view it:
+
+1. Start the development server:
+```bash
+npm run dev
+```
+
+2. Open http://localhost:3000/api-docs in your browser
+
+### Updating API Documentation
+
+The API documentation is generated from JSDoc comments in the API route files. To update the documentation:
+
+1. Add or modify the JSDoc comments in the API route files
+2. The changes will be automatically reflected in the Swagger UI
+3. Make sure to follow the OpenAPI 3.0.0 specification format
