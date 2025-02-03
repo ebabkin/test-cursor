@@ -16,8 +16,9 @@ describe('/api/messages', () => {
     expect(res._getStatusCode()).toBe(200);
     const data = JSON.parse(res._getData());
     expect(data).toHaveProperty('response');
-    expect(data.response).toContain('Message accepted');
-    expect(data.response).toContain(`length:${testMessage.length}`);
+    expect(data.response).toMatch(
+      /^Message accepted, length: \d+ on \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC$/
+    );
   });
 
   it('returns 405 for non-POST requests', async () => {
