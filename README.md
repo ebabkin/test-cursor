@@ -26,20 +26,17 @@ A simple chat application built with Next.js and Material-UI that simulates a Wh
 - **Containerization**: 
   - Docker with Node 18 Alpine
 
-## Getting Started
+## Setup
 
 ### Prerequisites
+- Node.js (v14 or higher)
+- Docker and Docker Compose
+- PostgreSQL (if running without Docker)
 
-- Node.js 18 or higher
-- npm or yarn
-- Docker (optional, for containerized deployment)
-
-### Local Development
-
-1. Clone the repository:
+### Database Setup
+1. Start the PostgreSQL database using Docker:
 ```bash
-git clone <repository-url>
-cd <repository-name>
+docker-compose up -d
 ```
 
 2. Install dependencies:
@@ -47,26 +44,36 @@ cd <repository-name>
 npm install
 ```
 
-3. Run the development server:
+3. Run database migrations:
+```bash
+npm run migrate:up
+```
+
+### Environment Variables
+Create a `.env.local` file in the root directory with the following variables:
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=postgres
+DB_USER=postgres
+DB_PASSWORD=postgres
+```
+
+### Development
+1. Start the development server:
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+2. Access the application:
+- Web application: http://localhost:3000
+- API documentation: http://localhost:3000/api-docs
 
-### Using Docker
-
-1. Build the Docker image:
+### Testing
+Run the test suite:
 ```bash
-docker build -t chat-app .
+npm test
 ```
-
-2. Run the Docker container:
-```bash
-docker run -p 3000:3000 chat-app
-```
-
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ## API Endpoints
 
