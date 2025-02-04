@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "migrate": "node-pg-migrate",
+    "migrate:up": "node-pg-migrate up",
+    "migrate:down": "node-pg-migrate down"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
@@ -19,7 +22,10 @@
     "next-swagger-doc": "^0.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "swagger-ui-react": "^5.11.8"
+    "swagger-ui-react": "^5.11.8",
+    "pg": "^8.11.3",
+    "node-pg-migrate": "^6.2.2",
+    "bcrypt": "^5.1.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.2",
