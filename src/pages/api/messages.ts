@@ -44,7 +44,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const now = new Date();
   const formattedDate = formatDate(now);
 
-  const response = `Message accepted, length:${message.length} on ${formattedDate} UTC`;
+  const response = `Message accepted, length: ${message.length} on ${formattedDate} UTC`;
 
   res.status(200).json({ response });
 }
