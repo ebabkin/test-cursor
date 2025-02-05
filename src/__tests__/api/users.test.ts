@@ -29,8 +29,14 @@ describe('User API Endpoints', () => {
         password: 'password123',
       };
 
-      (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [mockUser] });
       (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ count: '0' }] });
+      (pool.query as jest.Mock).mockResolvedValueOnce({ 
+        rows: [{
+          id: mockUser.id,
+          nickname: mockUser.nickname,
+          email: mockUser.email
+        }] 
+      });
 
       const { req, res } = createMocks({
         method: 'POST',
