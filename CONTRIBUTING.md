@@ -2,13 +2,18 @@
 
 ## Development Requirements
 
-### API Testing and Documentation
-1. All API calls must be covered with one or more tests
-2. All API calls must be documented using OpenAPI specification
-3. When making changes:
+### How to change the codebase
+1. When making changes:
+   - Review `db/schema.sql` to understand existing data structures
+   - Avoid unnecessary changes to the database schema unless the prompt explicitly asks for it; OR if you need to change the DB - you should confirmed that with the reviewer
    - Ensure existing tests and documentation are updated
    - Add tests and documentation for new features
    - Verify that documentation reflects the current API behavior
+   - Refer to all sections below 
+
+### API Testing and Documentation
+1. All API calls must be covered with one or more tests
+2. All API calls must be documented using OpenAPI specification
 
 ### Quality Assurance
 4. Before submitting changes:
@@ -60,4 +65,43 @@
 - Use OpenAPI 3.0.0 specification for API documentation
 - Keep documentation clear and concise
 - Include examples where appropriate
-- Document error responses and edge cases 
+- Document error responses and edge cases
+
+## Database Management
+
+### Schema Documentation
+1. The database schema is documented in `db/schema.sql`
+   - This is the source of truth for database structure
+   - AI systems and developers should refer to this file for database information
+   - The file must be kept up to date with any database changes
+
+### Database Changes
+1. Before making any database changes:
+   - Review `db/schema.sql` to understand existing data structures
+   - Assess impact on existing features and data
+   - Discuss significant structural changes with reviewers
+
+2. When implementing database changes:
+   - Create appropriate migration files
+   - Update `db/schema.sql` to reflect the new structure
+   - Add comments explaining the purpose of changes
+   - Document any new constraints or dependencies
+
+3. Pull Request Requirements:
+   - Include both migration files and schema documentation updates
+   - Explain why the database change is necessary
+   - Document any data migration steps if applicable
+   - Get explicit approval for schema changes from reviewers
+
+### Schema Review Guidelines
+1. Reviewers must:
+   - Compare migration files against schema documentation
+   - Verify documentation accuracy and completeness
+   - Ensure changes don't break existing functionality
+   - Check for proper handling of existing data
+
+2. Changes that require extra scrutiny:
+   - Column removals or renames
+   - Changes to column types
+   - New constraints on existing columns
+   - Changes affecting unique indexes 
