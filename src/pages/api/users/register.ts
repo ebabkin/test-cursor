@@ -2,8 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { UserService } from '../../../services/userService';
 import { CreateUserDto } from '../../../types/user';
 
-const userService = new UserService();
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -13,27 +11,35 @@ export default async function handler(
   }
 
   try {
-    const userData: CreateUserDto = req.body;
+    const { email, username, password } = req.body;
 
-    // Validate input
-    if (!userData.email || !userData.nickname || !userData.password) {
-      return res.status(400).json({ message: 'All fields are required' });
+    if (!email || !username || !password) {
+      return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
-      return res.status(400).json({ message: 'Invalid email format' });
-    }
-
-    if (await userService.isEmailTaken(userData.email)) {
-      return res.status(409).json({ message: 'Email already registered' });
-    }
-
-    const user = await userService.createUser(userData);
-    delete user.password;
+    const userService = new UserService();
     
-    res.status(201).json(user);
+    // Check if user exists before attempting to create
+    const { emailExists, usernameExists } = await userService.checkUserExists(email, username);
+    
+    if (emailExists || usernameExists) {
+      return res.status(400).json({
+        message: emailExists && usernameExists 
+          ? 'Both email and username are already taken'
+          : emailExists 
+          ? 'Email already exists' 
+          : 'Username already exists'
+      });
+    }
+
+    const user = await userService.createUser({ email, username, password });
+    
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user;
+    
+    return res.status(201).json(userWithoutPassword);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Registration error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 } 

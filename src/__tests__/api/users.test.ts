@@ -3,6 +3,8 @@ import registerHandler from '../../pages/api/users/register';
 import authenticateHandler from '../../pages/api/users/authenticate';
 import getUserHandler from '../../pages/api/users/[id]';
 import { pool } from '../../config/database';
+import request from 'supertest';
+import { app } from '../../pages/api/users/register';
 
 jest.mock('../../config/database', () => ({
   pool: {
@@ -71,6 +73,52 @@ describe('User API Endpoints', () => {
         message: 'Invalid email format',
       });
     });
+
+    it('should not allow duplicate emails', async () => {
+      // First registration
+      await request(app)
+        .post('/api/users/register')
+        .send({
+          email: 'test@example.com',
+          username: 'testuser1',
+          password: 'password123'
+        });
+
+      // Attempt duplicate email registration
+      const response = await request(app)
+        .post('/api/users/register')
+        .send({
+          email: 'test@example.com',
+          username: 'testuser2',
+          password: 'password123'
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain('Email already exists');
+    });
+
+    it('should not allow duplicate usernames', async () => {
+      // First registration
+      await request(app)
+        .post('/api/users/register')
+        .send({
+          email: 'test1@example.com',
+          username: 'testuser',
+          password: 'password123'
+        });
+
+      // Attempt duplicate username registration
+      const response = await request(app)
+        .post('/api/users/register')
+        .send({
+          email: 'test2@example.com',
+          username: 'testuser',
+          password: 'password123'
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain('Username already exists');
+    });
   });
 
   describe('POST /api/users/authenticate', () => {
@@ -114,6 +162,41 @@ describe('User API Endpoints', () => {
       expect(JSON.parse(res._getData())).toEqual({
         message: 'Invalid credentials',
       });
+    });
+
+    beforeEach(async () => {
+      // Create a test user
+      await request(app)
+        .post('/api/users/register')
+        .send({
+          email: 'test@example.com',
+          username: 'testuser',
+          password: 'password123'
+        });
+    });
+
+    it('should authenticate with email', async () => {
+      const response = await request(app)
+        .post('/api/users/authenticate')
+        .send({
+          identifier: 'test@example.com',
+          password: 'password123'
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.user).toBeDefined();
+    });
+
+    it('should authenticate with username', async () => {
+      const response = await request(app)
+        .post('/api/users/authenticate')
+        .send({
+          identifier: 'testuser',
+          password: 'password123'
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.user).toBeDefined();
     });
   });
 
