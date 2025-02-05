@@ -13,6 +13,6 @@ export interface CreateUserDto {
 }
 
 export interface AuthenticateUserDto {
-  email: string;
+  email: string;      // Can be either email or nickname
   password: string;
 } 

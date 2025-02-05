@@ -26,17 +26,13 @@ describe('User API Endpoints', () => {
         id: '123e4567-e89b-12d3-a456-426614174000',
         nickname: 'testuser',
         email: 'test@example.com',
-        password: 'password123',
+        password: 'hashedPassword',
       };
 
-      (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ count: '0' }] });
-      (pool.query as jest.Mock).mockResolvedValueOnce({ 
-        rows: [{
-          id: mockUser.id,
-          nickname: mockUser.nickname,
-          email: mockUser.email
-        }] 
-      });
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [{ count: '0' }] })
+        .mockResolvedValueOnce({ rows: [{ count: '0' }] })
+        .mockResolvedValueOnce({ rows: [mockUser] });
 
       const { req, res } = createMocks({
         method: 'POST',
@@ -71,6 +67,50 @@ describe('User API Endpoints', () => {
         message: 'Invalid email format',
       });
     });
+
+    it('should return 409 when email is already registered', async () => {
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [{ count: '1' }] })
+        .mockResolvedValueOnce({ rows: [{ count: '0' }] });
+
+      const { req, res } = createMocks({
+        method: 'POST',
+        body: {
+          nickname: 'testuser',
+          email: 'existing@example.com',
+          password: 'password123',
+        },
+      });
+
+      await registerHandler(req, res);
+
+      expect(res._getStatusCode()).toBe(409);
+      expect(JSON.parse(res._getData())).toEqual({
+        message: 'Email already registered',
+      });
+    });
+
+    it('should return 409 when nickname is already taken', async () => {
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rows: [{ count: '0' }] })
+        .mockResolvedValueOnce({ rows: [{ count: '1' }] });
+
+      const { req, res } = createMocks({
+        method: 'POST',
+        body: {
+          nickname: 'existinguser',
+          email: 'new@example.com',
+          password: 'password123',
+        },
+      });
+
+      await registerHandler(req, res);
+
+      expect(res._getStatusCode()).toBe(409);
+      expect(JSON.parse(res._getData())).toEqual({
+        message: 'Nickname already taken',
+      });
+    });
   });
 
   describe('POST /api/users/authenticate', () => {
@@ -79,6 +119,7 @@ describe('User API Endpoints', () => {
         id: '123e4567-e89b-12d3-a456-426614174000',
         email: 'test@example.com',
         nickname: 'testuser',
+        password: 'hashedPassword',
       };
 
       (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [mockUser] });
@@ -94,7 +135,12 @@ describe('User API Endpoints', () => {
       await authenticateHandler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      expect(JSON.parse(res._getData())).toEqual(mockUser);
+      const responseData = JSON.parse(res._getData());
+      expect(responseData).toEqual({
+        id: mockUser.id,
+        email: mockUser.email,
+        nickname: mockUser.nickname,
+      });
     });
 
     it('should return 401 for invalid credentials', async () => {
@@ -114,6 +160,29 @@ describe('User API Endpoints', () => {
       expect(JSON.parse(res._getData())).toEqual({
         message: 'Invalid credentials',
       });
+    });
+
+    it('should authenticate user with nickname', async () => {
+      const mockUser = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        email: 'test@example.com',
+        nickname: 'testuser',
+      };
+
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [mockUser] });
+
+      const { req, res } = createMocks({
+        method: 'POST',
+        body: {
+          email: 'testuser',
+          password: 'password123',
+        },
+      });
+
+      await authenticateHandler(req, res);
+
+      expect(res._getStatusCode()).toBe(200);
+      expect(JSON.parse(res._getData())).toEqual(mockUser);
     });
   });
 

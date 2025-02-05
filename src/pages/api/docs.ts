@@ -69,7 +69,20 @@ const apiDocumentation = {
             description: 'Invalid input',
           },
           409: {
-            description: 'Email already registered',
+            description: 'Email or nickname already taken',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                      enum: ['Email already registered', 'Nickname already taken'],
+                    },
+                  },
+                },
+              },
+            },
           },
           500: {
             description: 'Internal server error',
@@ -91,10 +104,11 @@ const apiDocumentation = {
                 properties: {
                   email: {
                     type: 'string',
-                    format: 'email',
+                    description: 'User email or nickname',
                   },
                   password: {
                     type: 'string',
+                    description: 'User password',
                   },
                 },
               },
