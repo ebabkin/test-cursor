@@ -1,0 +1,7 @@
+-- Up Migration
+ALTER TABLE users
+ADD COLUMN creation_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- Down Migration
+ALTER TABLE users
+DROP COLUMN IF EXISTS creation_date; 

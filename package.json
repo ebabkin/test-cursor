@@ -9,9 +9,9 @@
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "migrate": "node-pg-migrate --config-file database.json --migrations-dir migrations --migration-file-language ts --tsconfig tsconfig.json",
-    "migrate:up": "node-pg-migrate --config-file database.json --migrations-dir migrations --migration-file-language ts --tsconfig tsconfig.json up",
-    "migrate:down": "node-pg-migrate --config-file database.json --migrations-dir migrations --migration-file-language ts --tsconfig tsconfig.json down"
+    "migrate": "node-pg-migrate --config-file database.json --migrations-dir migrations",
+    "migrate:up": "node-pg-migrate --config-file database.json --migrations-dir migrations up",
+    "migrate:down": "node-pg-migrate --config-file database.json --migrations-dir migrations down"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
