@@ -3,8 +3,10 @@ import { Box, Paper, TextField, IconButton } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import MessageList from './MessageList';
 import { Message } from '../types/chat';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function ChatInterface() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
 
@@ -26,7 +28,10 @@ export default function ChatInterface() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: newMessage }),
+        body: JSON.stringify({ 
+          message: newMessage,
+          user: user || undefined
+        }),
       });
 
       const data = await response.json();

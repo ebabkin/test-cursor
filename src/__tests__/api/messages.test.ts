@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http';
-import handler from '../../../src/pages/api/messages';
+import handler from '../../pages/api/messages';
 
 describe('/api/messages', () => {
   it('returns success response for valid message', async () => {
@@ -17,7 +17,7 @@ describe('/api/messages', () => {
     const data = JSON.parse(res._getData());
     expect(data).toHaveProperty('response');
     expect(data.response).toMatch(
-      /^Message accepted, length: \d+ on \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC$/
+      /^Message from Anonymous accepted, length: \d+ on \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC$/
     );
   });
 

@@ -1,13 +1,9 @@
-const nextJest = require('next/jest');
-
-const createJestConfig = nextJest({
-  dir: './',
-});
-
-const customJestConfig = {
+module.exports = {
+  preset: 'ts-jest',
   testEnvironment: 'node',
-  testMatch: ['**/e2e/api/**/*.test.ts'],
-  setupFilesAfterEnv: ['<rootDir>/e2e/setup.ts'],
-};
-
-module.exports = createJestConfig(customJestConfig); 
+  setupFilesAfterEnv: ['<rootDir>/e2e/jest.setup.ts'],
+  testMatch: ['<rootDir>/e2e/**/*.test.ts'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+}; 
