@@ -18,19 +18,27 @@ export default function AuthHeader() {
           </Typography>
           {isAuthenticated ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography>
+              <Typography data-testid="welcome-message">
                 Welcome, {user?.nickname}!
               </Typography>
-              <Button color="inherit" onClick={logout}>
+              <Button color="inherit" onClick={logout} data-testid="logout-button">
                 Logout
               </Button>
             </Box>
           ) : (
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button color="inherit" onClick={() => setLoginOpen(true)}>
+              <Button 
+                color="inherit" 
+                onClick={() => setLoginOpen(true)}
+                data-testid="login-button"
+              >
                 Login
               </Button>
-              <Button color="inherit" onClick={() => setSignupOpen(true)}>
+              <Button 
+                color="inherit" 
+                onClick={() => setSignupOpen(true)}
+                data-testid="signup-button"
+              >
                 Sign Up
               </Button>
             </Box>

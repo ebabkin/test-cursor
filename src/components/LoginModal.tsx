@@ -41,6 +41,7 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            inputProps={{ 'data-testid': 'email-input' }}
           />
           <TextField
             margin="dense"
@@ -50,11 +51,12 @@ export default function LoginModal({ open, onClose }: LoginModalProps) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            inputProps={{ 'data-testid': 'password-input' }}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit">Login</Button>
+          <Button type="submit" data-testid="submit-login">Login</Button>
         </DialogActions>
       </form>
     </Dialog>
