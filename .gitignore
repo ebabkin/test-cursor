@@ -28,3 +28,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts 
+
+// ... existing code ...
+
+# E2E Testing
+/e2e/test-results/
+/e2e/playwright-report/
+/playwright/.cache/
+/test-results/
+/playwright-report/
+.env.test
+
+# Coverage reports
+/coverage/

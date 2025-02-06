@@ -62,8 +62,15 @@ export default function ChatInterface() {
               handleSend();
             }
           }}
+          inputProps={{
+            'data-testid': 'message-input'
+          }}
         />
-        <IconButton color="primary" onClick={handleSend}>
+        <IconButton 
+          color="primary" 
+          onClick={handleSend}
+          data-testid="send-button"
+        >
           <SendIcon />
         </IconButton>
       </Box>

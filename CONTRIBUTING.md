@@ -105,3 +105,24 @@
    - Changes to column types
    - New constraints on existing columns
    - Changes affecting unique indexes 
+
+## Testing Standards
+
+### End-to-End Testing Requirements
+- Maintain E2E test coverage for critical user paths
+- Minimum coverage requirements:
+  - User registration and authentication flow
+  - Basic chat functionality (sending/receiving messages)
+  - Critical API endpoints
+- All new features must include corresponding E2E tests
+- Browser tests should cover main user interactions
+- API tests should verify endpoint behavior with real database interactions
+
+### Running Tests
+- Always run full test suite before submitting changes:
+  ```bash
+  npm test          # Unit tests
+  npm run test:e2e:all  # E2E tests
+  ```
+- Fix any failing tests before submitting changes
+- Update tests when modifying existing functionality 

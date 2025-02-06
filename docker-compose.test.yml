@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  postgres_test:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: postgres_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
