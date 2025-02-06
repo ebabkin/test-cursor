@@ -19,14 +19,17 @@ export default function MessageList({ messages }: MessageListProps) {
   }, [messages]);
 
   return (
-    <Box sx={{ 
-      flex: 1, 
-      overflowY: 'auto',
-      p: 2,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 1
-    }}>
+    <Box 
+      sx={{ 
+        flex: 1, 
+        overflowY: 'auto',
+        p: 2,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1
+      }} 
+      data-testid="message-list"
+    >
       {messages.map((message) => (
         <MessageBubble key={message.id} message={message} />
       ))}
