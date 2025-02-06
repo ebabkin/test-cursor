@@ -35,16 +35,17 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { message } = req.body;
+  const { message, user } = req.body;
+  const nickname = user?.nickname || 'Anonymous';
 
-  // Log message to stdout
-  console.log('Received message:', message);
+  // Log message to stdout with user info
+  console.log(`Received message from ${nickname}:`, message);
 
   // Format current date
   const now = new Date();
   const formattedDate = formatDate(now);
 
-  const response = `Message accepted, length: ${message.length} on ${formattedDate} UTC`;
+  const response = `Message from ${nickname} accepted, length: ${message.length} on ${formattedDate} UTC`;
 
   res.status(200).json({ response });
 }
