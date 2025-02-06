@@ -91,7 +91,7 @@ Request body:
 Response:
 ```json
 {
-  "response": "Message accepted, length:20 at date:20240321 143022 UTC"
+  "response": "Message accepted, length: 20 at date:20240321 143022 UTC"
 }
 ```
 
@@ -136,14 +136,46 @@ Response:
 
 ## Testing
 
-To run tests locally:
-```bash
-# Run all tests
-npm test
+The project includes several types of tests:
 
-# Run tests in watch mode
-npm run test:watch
+### Unit Tests
+Run the unit test suite:
+```bash
+npm test
 ```
+
+### End-to-End Tests
+The project includes both browser-based and API-level E2E tests.
+
+#### Prerequisites
+- Docker and Docker Compose (for test database)
+- Node.js 14 or higher
+
+#### Running E2E Tests
+1. Run all E2E tests (includes setup and teardown):
+```bash
+npm run test:e2e:all
+```
+
+2. Or run individual test suites:
+- Browser tests: `npm run test:e2e --verbose`
+- API tests: `npm run test:api --verbose`
+
+3. Manual setup/teardown:
+```bash
+# Start test database
+npm run test:e2e:setup
+
+# Run migrations for test environment
+npm run migrate:test
+
+# Stop test database
+npm run test:e2e:teardown
+```
+
+#### Test Reports
+- Browser test reports are available in `e2e/playwright-report/`
+- Failed test screenshots in `e2e/test-results/`
 
 ## API Documentation
 
