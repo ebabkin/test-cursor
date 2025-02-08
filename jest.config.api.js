@@ -1,27 +1,27 @@
-const nextJest = require('next/jest')
+const nextJest = require('next/jest');
 
 const createJestConfig = nextJest({
   dir: './',
-})
+});
 
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  testEnvironment: 'jest-environment-jsdom',
+  testEnvironment: 'jest-environment-node',
   moduleDirectories: ['node_modules', '<rootDir>/'],
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
   testMatch: [
-    '<rootDir>/src/**/__tests__/**/*.test.{ts,tsx}'
+    '<rootDir>/e2e/api/**/*.test.{ts,tsx}'  // Only run API tests
   ],
   globals: {
     'ts-jest': {
       tsconfig: 'tsconfig.json',
     },
   },
-}
+};
 
-module.exports = createJestConfig(customJestConfig) 
+module.exports = createJestConfig(customJestConfig); 
