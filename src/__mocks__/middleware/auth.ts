@@ -1,12 +1,14 @@
 import { jest } from '@jest/globals';
 import { NextApiRequest } from 'next';
 
-const mockUser = {
-  id: '123e4567-e89b-12d3-a456-426614174000',
-  nickname: 'testuser',
-  email: 'test@example.com',
-};
-
-const authenticateUser = jest.fn();
-
-export { authenticateUser, mockUser }; 
+export const authenticateUser = jest.fn().mockImplementation(async (req: NextApiRequest) => {
+  if (req.headers.authorization) {
+    const userId = req.headers.authorization.replace('Bearer ', '');
+    return {
+      id: userId,
+      nickname: 'testuser',
+      email: 'test@example.com',
+    };
+  }
+  return null;
+}); 

@@ -5,7 +5,7 @@ import messageHandler from '../../../pages/api/v2/channels/[channelId]/messages'
 import membersHandler from '../../../pages/api/v2/channels/[channelId]/members';
 import { generateChannelCode } from '../../../utils/channelCode';
 import { pool, mockClient } from '../../../__mocks__/database';
-import { authenticateUser, mockUser } from '../../../middleware/auth';
+import { authenticateUser } from '../../../middleware/auth';
 
 // Mock modules
 jest.mock('../../../config/database');
@@ -15,20 +15,19 @@ jest.mock('../../../utils/channelCode', () => ({
 }));
 
 describe('Channel API', () => {
+  const mockUser = {
+    id: '123e4567-e89b-12d3-a456-426614174000',
+    nickname: 'testuser',
+    email: 'test@example.com',
+  };
+
+  const mockChannelId = '123e4567-e89b-12d3-a456-426614174001';
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockClient.query.mockClear().mockResolvedValue({ rows: [] });
     mockClient.release.mockClear();
     pool.connect.mockResolvedValue(mockClient);
-    
-    authenticateUser.mockReset();
-    authenticateUser.mockImplementation(async (req) => {
-      if (req.headers.authorization) {
-        const userId = req.headers.authorization.replace('Bearer ', '');
-        return { ...mockUser, id: userId };
-      }
-      return null;
-    });
   });
 
   describe('POST /api/v2/channels', () => {
@@ -72,8 +71,6 @@ describe('Channel API', () => {
   });
 
   describe('POST /api/v2/channels/:channelId/messages', () => {
-    const mockChannelId = '123e4567-e89b-12d3-a456-426614174001';
-
     it('creates a new message successfully', async () => {
       const mockMessage = {
         id: '123e4567-e89b-12d3-a456-426614174002',
@@ -174,8 +171,6 @@ describe('Channel API', () => {
   });
 
   describe('GET /api/v2/channels/:channelId/members', () => {
-    const mockChannelId = '123e4567-e89b-12d3-a456-426614174001';
-
     it('returns channel members for accessible channel', async () => {
       const mockMembers = {
         members: [
@@ -211,8 +206,6 @@ describe('Channel API', () => {
   });
 
   describe('PUT /api/v2/channels/:channelId', () => {
-    const mockChannelId = '123e4567-e89b-12d3-a456-426614174001';
-
     it('updates channel successfully when user is owner', async () => {
       const mockChannel = {
         id: mockChannelId,
@@ -266,8 +259,6 @@ describe('Channel API', () => {
   });
 
   describe('DELETE /api/v2/channels/:channelId', () => {
-    const mockChannelId = '123e4567-e89b-12d3-a456-426614174001';
-
     it('deletes channel successfully when user is owner', async () => {
       mockClient.query
         .mockResolvedValueOnce({ rows: [{ id: mockChannelId }] }) // owner check
