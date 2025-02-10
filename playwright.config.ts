@@ -1,26 +1,26 @@
-import { PlaywrightTestConfig } from '@playwright/test';
+import { PlaywrightTestConfig, devices } from '@playwright/test';
+import path from 'path';
 
 const config: PlaywrightTestConfig = {
   testDir: './e2e/playwright',
+  timeout: 30000,
+  globalSetup: path.join(__dirname, './e2e/setup.ts'),
   use: {
     baseURL: 'http://localhost:3000',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
     trace: 'on-first-retry',
-  },
-  webServer: {
-    command: 'npm run dev',
-    port: 3000,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000, // 2 minutes
   },
   projects: [
     {
       name: 'Chrome',
-      use: { browserName: 'chromium' },
-    }
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
-  timeout: 30000, // 30 seconds per test
+  webServer: {
+    command: 'npm run dev',
+    port: 3000,
+    timeout: 120000,
+    reuseExistingServer: !process.env.CI,
+  },
 };
 
 export default config; 

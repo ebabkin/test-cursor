@@ -1,11 +1,14 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiResponse } from 'next';
+import { withAuth, AuthenticatedRequest } from '../../middleware/auth';
 
 /**
  * @swagger
  * /api/messages:
  *   post:
  *     summary: Send a message and get a response
- *     description: Accepts a message and returns a confirmation with timestamp
+ *     description: Accepts a message and returns a confirmation with timestamp. Requires authentication.
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -27,16 +30,18 @@ import type { NextApiRequest, NextApiResponse } from 'next';
  *                 response:
  *                   type: string
  *                   description: Confirmation message with timestamp
+ *       401:
+ *         description: Unauthorized - valid authentication token required
  *       405:
  *         description: Method not allowed
  */
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { message, user } = req.body;
-  const nickname = user?.nickname || 'Anonymous';
+  const { message } = req.body;
+  const nickname = req.user?.nickname || 'Anonymous';
 
   // Log message to stdout with user info
   console.log(`Received message from ${nickname}:`, message);
@@ -59,4 +64,6 @@ function formatDate(date: Date): string {
   const seconds = String(date.getUTCSeconds()).padStart(2, '0');
   
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-} 
+}
+
+export default withAuth(handler); 

@@ -195,3 +195,55 @@ The API documentation is generated from JSDoc comments in the API route files. T
 1. Add or modify the JSDoc comments in the API route files
 2. The changes will be automatically reflected in the Swagger UI
 3. Make sure to follow the OpenAPI 3.0.0 specification format
+
+## Authentication Configuration
+
+The application uses JWT (JSON Web Tokens) with RS256 algorithm for authentication. This requires a public/private key pair for token signing and verification.
+
+### Generating Keys
+
+1. Generate a private key:
+```bash
+openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
+```
+
+2. Extract the public key:
+```bash
+openssl rsa -pubout -in private.pem -out public.pem
+```
+
+### Environment Configuration
+
+The application expects the following environment variables for JWT authentication:
+
+```env
+# Base64 encoded private key for JWT signing
+JWT_PRIVATE_KEY=<base64-encoded-private-key>
+
+# Base64 encoded public key for JWT verification
+JWT_PUBLIC_KEY=<base64-encoded-public-key>
+```
+
+To set these variables:
+
+1. Convert your PEM files to base64:
+   ```bash
+   # On Unix/Linux/macOS:
+   base64 -i private.pem
+   base64 -i public.pem
+
+   # On Windows PowerShell:
+   [Convert]::ToBase64String([System.IO.File]::ReadAllBytes("private.pem"))
+   [Convert]::ToBase64String([System.IO.File]::ReadAllBytes("public.pem"))
+   ```
+
+2. Add the base64-encoded keys to your environment files:
+   - `.env.local` for local development
+   - `.env.test` for testing environment
+   - Production environment variables should be configured in your deployment platform
+
+### Security Notes
+
+- Keep your private key secure and never commit it to version control
+- Rotate keys periodically for enhanced security
+- Use environment-specific keys for different deployments (development, staging, production)

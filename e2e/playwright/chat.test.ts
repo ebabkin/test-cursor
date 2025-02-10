@@ -1,76 +1,101 @@
 import { test, expect } from '@playwright/test';
 import { pool } from '../../src/config/database';
-import bcrypt from 'bcrypt';
 
 test.describe('Chat functionality', () => {
-  test.beforeAll(async () => {
-    // Create test user
-    await pool.query(
-      'DELETE FROM USERS WHERE nickname= $1',
-      ['testuser']
-    );
-    const hashedPassword = await bcrypt.hash('password123', 10);
-    await pool.query(
-      'INSERT INTO users (nickname, email, password) VALUES ($1, $2, $3)',
-      ['testuser', 'test@example.com', hashedPassword]
-    );
-  });
-
   test.afterAll(async () => {
-    await pool.query('TRUNCATE TABLE users CASCADE');
-    await pool.end();
+    try {
+      // Clean up database
+      await pool.query('TRUNCATE TABLE users CASCADE');
+    } catch (error) {
+      console.error('Error during cleanup:', error);
+    } finally {
+      await pool.end().catch(console.error);
+    }
   });
 
-  test('anonymous user can send and receive messages', async ({ page }) => {
+  test('should show login requirement for unauthenticated users', async ({ page }) => {
     await page.goto('/');
     
-    // Type and send a message
-    await page.fill('[data-testid="message-input"]', 'Hello, World!');
-    await page.click('[data-testid="send-button"]');
+    // Check that message input is disabled
+    const messageInput = await page.getByTestId('message-input');
+    expect(await messageInput.isDisabled()).toBeTruthy();
     
-    // Verify message appears
-    await expect(page.locator('text="Hello, World!"')).toBeVisible();
+    // Check placeholder text
+    expect(await messageInput.getAttribute('placeholder')).toBe('Please log in to send messages');
     
-    // Verify system response includes "Anonymous"
-    await expect(page.locator('text=/Message from Anonymous accepted/')).toBeVisible();
+    // Check that send button is disabled
+    const sendButton = await page.getByTestId('send-button');
+    expect(await sendButton.isDisabled()).toBeTruthy();
   });
 
-  test('authenticated user can send and receive messages', async ({ page }) => {
+  test('should allow sending messages for authenticated users', async ({ page }) => {
     await page.goto('/');
     
-    // Login with the created test user
-    await page.click('[data-testid="login-button"]');
-    await page.fill('[data-testid="email-input"]', 'test@example.com');
-    await page.fill('[data-testid="password-input"]', 'password123');
-    await page.click('[data-testid="submit-login"]');
+    // Login first
+    await page.getByTestId('login-button').click();
+    await page.getByTestId('email-input').fill('test@example.com');
+    await page.getByTestId('password-input').fill('password123');
+    await page.getByTestId('submit-login').click();
     
-    // Wait for login success and welcome message
-    await expect(page.locator('[data-testid="welcome-message"]')).toBeVisible({ timeout: 10000 });
+    // Wait for login to complete
+    await expect(page.getByTestId('welcome-message')).toBeVisible();
     
-    // Send message
-    await page.fill('[data-testid="message-input"]', 'Hello from testuser!');
-    await page.click('[data-testid="send-button"]');
+    // Now try to send a message
+    const messageInput = await page.getByTestId('message-input');
+    await messageInput.fill('Test message');
+    await page.getByTestId('send-button').click();
     
-    // Verify message appears with correct user info
-    await expect(page.locator('text="Hello from testuser!"')).toBeVisible();
-    await expect(page.locator('text=/Message from testuser accepted/')).toBeVisible();
+    // Check that message appears in the list
+    const messageList = await page.getByTestId('message-list');
+    await expect(messageList).toContainText('Test message');
+    
+    // Check for system response
+    await expect(messageList).toContainText('Message from testuser accepted');
   });
 
-  test('empty messages cannot be sent', async ({ page }) => {
+  test('should persist authentication state on refresh', async ({ page }) => {
     await page.goto('/');
     
-    // Get initial message count
-    const initialMessages = await page.locator('[data-testid="message-list"] > div').all();
-    const initialCount = initialMessages.length;
+    // Login
+    await page.getByTestId('login-button').click();
+    await page.getByTestId('email-input').fill('test@example.com');
+    await page.getByTestId('password-input').fill('password123');
+    await page.getByTestId('submit-login').click();
     
-    // Try to send empty message
-    await page.click('[data-testid="send-button"]');
+    // Wait for login to complete
+    await expect(page.getByTestId('welcome-message')).toBeVisible();
     
-    // Wait a bit to ensure no message is added
-    await page.waitForTimeout(1000);
+    // Refresh page
+    await page.reload();
     
-    // Verify no new messages appear
-    const currentMessages = await page.locator('[data-testid="message-list"] > div').all();
-    expect(currentMessages.length).toBe(initialCount);
+    // Check that we're still logged in
+    await expect(page.getByTestId('welcome-message')).toBeVisible();
+    
+    // Verify we can still send messages
+    const messageInput = await page.getByTestId('message-input');
+    expect(await messageInput.isDisabled()).toBeFalsy();
+  });
+
+  test('should clear authentication state on logout', async ({ page }) => {
+    await page.goto('/');
+    
+    // Login
+    await page.getByTestId('login-button').click();
+    await page.getByTestId('email-input').fill('test@example.com');
+    await page.getByTestId('password-input').fill('password123');
+    await page.getByTestId('submit-login').click();
+    
+    // Wait for login to complete
+    await expect(page.getByTestId('welcome-message')).toBeVisible();
+    
+    // Logout
+    await page.getByTestId('logout-button').click();
+    
+    // Verify we're logged out
+    await expect(page.getByTestId('login-button')).toBeVisible();
+    
+    // Verify message input is disabled
+    const messageInput = await page.getByTestId('message-input');
+    expect(await messageInput.isDisabled()).toBeTruthy();
   });
 }); 

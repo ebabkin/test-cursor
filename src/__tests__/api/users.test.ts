@@ -3,6 +3,7 @@ import registerHandler from '../../pages/api/users/register';
 import authenticateHandler from '../../pages/api/users/authenticate';
 import getUserHandler from '../../pages/api/users/[id]';
 import { pool } from '../../config/database';
+import { generateToken } from '../../utils/jwt';
 
 jest.mock('../../config/database', () => ({
   pool: {
@@ -13,6 +14,10 @@ jest.mock('../../config/database', () => ({
 jest.mock('bcrypt', () => ({
   hash: jest.fn().mockResolvedValue('hashedPassword'),
   compare: jest.fn().mockResolvedValue(true),
+}));
+
+jest.mock('../../utils/jwt', () => ({
+  generateToken: jest.fn().mockReturnValue('mock-jwt-token'),
 }));
 
 describe('User API Endpoints', () => {
@@ -114,7 +119,7 @@ describe('User API Endpoints', () => {
   });
 
   describe('POST /api/users/authenticate', () => {
-    it('should authenticate user successfully', async () => {
+    it('should authenticate user successfully and return JWT token', async () => {
       const mockUser = {
         id: '123e4567-e89b-12d3-a456-426614174000',
         email: 'test@example.com',
@@ -140,7 +145,9 @@ describe('User API Endpoints', () => {
         id: mockUser.id,
         email: mockUser.email,
         nickname: mockUser.nickname,
+        token: 'mock-jwt-token'
       });
+      expect(generateToken).toHaveBeenCalledWith(mockUser);
     });
 
     it('should return 401 for invalid credentials', async () => {
@@ -160,13 +167,15 @@ describe('User API Endpoints', () => {
       expect(JSON.parse(res._getData())).toEqual({
         message: 'Invalid credentials',
       });
+      expect(generateToken).not.toHaveBeenCalled();
     });
 
-    it('should authenticate user with nickname', async () => {
+    it('should authenticate user with nickname and return JWT token', async () => {
       const mockUser = {
         id: '123e4567-e89b-12d3-a456-426614174000',
         email: 'test@example.com',
         nickname: 'testuser',
+        password: 'hashedPassword',
       };
 
       (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [mockUser] });
@@ -182,7 +191,14 @@ describe('User API Endpoints', () => {
       await authenticateHandler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      expect(JSON.parse(res._getData())).toEqual(mockUser);
+      const responseData = JSON.parse(res._getData());
+      expect(responseData).toEqual({
+        id: mockUser.id,
+        email: mockUser.email,
+        nickname: mockUser.nickname,
+        token: 'mock-jwt-token'
+      });
+      expect(generateToken).toHaveBeenCalledWith(mockUser);
     });
   });
 

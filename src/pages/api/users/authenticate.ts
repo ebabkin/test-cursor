@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { UserService } from '../../../services/userService';
 import { AuthenticateUserDto } from '../../../types/user';
+import { generateToken } from '../../../utils/jwt';
 
 const userService = new UserService();
 
@@ -25,7 +26,15 @@ export default async function handler(
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    res.status(200).json(user);
+    // Generate JWT token
+    const token = generateToken(user);
+
+    // Return user info and token
+    const { password, ...userWithoutPassword } = user;
+    res.status(200).json({
+      ...userWithoutPassword,
+      token
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
