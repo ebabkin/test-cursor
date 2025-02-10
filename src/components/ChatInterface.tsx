@@ -1,17 +1,23 @@
 import { useState } from 'react';
-import { Box, Paper, TextField, IconButton } from '@mui/material';
+import { Box, Paper, TextField, IconButton, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import MessageList from './MessageList';
 import { Message } from '../types/chat';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function ChatInterface() {
-  const { user } = useAuth();
+  const { user, token, isAuthenticated } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleSend = async () => {
     if (!newMessage.trim()) return;
+
+    if (!isAuthenticated) {
+      setError('You must be logged in to send messages');
+      return;
+    }
 
     // Add user message
     const userMessage: Message = {
@@ -27,12 +33,14 @@ export default function ChatInterface() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ 
-          message: newMessage,
-          user: user || undefined
-        }),
+        body: JSON.stringify({ message: newMessage }),
       });
+
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
 
       const data = await response.json();
       
@@ -44,8 +52,10 @@ export default function ChatInterface() {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, systemMessage]);
+      setError(null);
     } catch (error) {
       console.error('Error sending message:', error);
+      setError('Failed to send message. Please try again.');
     }
 
     setNewMessage('');
@@ -54,11 +64,16 @@ export default function ChatInterface() {
   return (
     <Paper elevation={3} sx={{ flex: 1, display: 'flex', flexDirection: 'column', m: 2 }}>
       <MessageList messages={messages} />
+      {error && (
+        <Typography color="error" sx={{ px: 2, py: 1 }}>
+          {error}
+        </Typography>
+      )}
       <Box sx={{ p: 2, display: 'flex', gap: 1 }}>
         <TextField
           fullWidth
           variant="outlined"
-          placeholder="Type a message..."
+          placeholder={isAuthenticated ? "Type a message..." : "Please log in to send messages"}
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={(e) => {
@@ -67,6 +82,7 @@ export default function ChatInterface() {
               handleSend();
             }
           }}
+          disabled={!isAuthenticated}
           inputProps={{
             'data-testid': 'message-input'
           }}
@@ -74,6 +90,7 @@ export default function ChatInterface() {
         <IconButton 
           color="primary" 
           onClick={handleSend}
+          disabled={!isAuthenticated}
           data-testid="send-button"
         >
           <SendIcon />
