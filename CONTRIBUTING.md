@@ -9,6 +9,8 @@
    - Ensure existing tests and documentation are updated
    - Add tests and documentation for new features
    - Verify that documentation reflects the current API behavior
+   - Add the initial change request as a new version entry in Changelog.md with an appropriate version number
+   - Update the "Short summary of changes" section in Changelog.md to reflect the new changes
    - Refer to all sections below 
 
 ### API Testing and Documentation
