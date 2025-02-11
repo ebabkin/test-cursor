@@ -8,6 +8,42 @@ Key milestones include the transition from a simple messaging system to a full-f
 
 ## Version history
 
+
+### v0.12
+**Goal**: Introduce channels and messages v2
+
+Added support for channels and a new message system with improved scalability:
+1. Introduced channels with public/private visibility
+2. Added channel membership system
+3. Created new message structure with separate preview and content storage
+4. Implemented message partitioning by date for better performance
+5. Added new v2 API endpoints for channels and messages
+6. Kept original message API for backward compatibility
+
+Key technical decisions:
+- Messages are partitioned by month for scalability
+- Message content is split into preview and full content tables
+- Channel codes are auto-generated 6-character unique identifiers
+- All operations maintain data consistency using transactions
+
+@Codebase It's time to introduce channels and messages, which will be posted to the channels by the authenticated users.
+In this change we need to introduce DB structure changes and APIs, leaving UI for a later stage.
+
+Channel can be created by any authenticated user who becomes the owner.
+Channels require a region id (just DEFAULT for now), a title, an optional description and a private/public flag
+Each channel has a uuid, an auto-generated 6 chars channel code, state (ACTIVE/DELETED), a creation date and the owner, and also a preview of the last message (up to 128 chars)
+
+Users can be members of multiple channel with a role, which by now can only be USER
+
+Messages can be added by the users to the channels. Message content is now a text up to 64k, and we need two similar structures at DB level: one for efficiency only keeps first up to 128 chars of the message, and another one with full message content.
+Messages have uuid, channel id, user id, created date, deleted flag, kind (TEXT for now), content (as described above).
+
+Users will be able to create channels, post messages to the channels they are a member of, add themselves to a channel by ID o
+
+Leave the current messages API as is, introduce an /api/v2/. Think as a senior engineer, considering volumes of data (e.g. should messages structures be partitioned by date and so on.)
+
+Follow contributing guidelines.
+
 ### v0.11
 **Goal**: Improve changelog formatting and documentation
 
