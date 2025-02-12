@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS channel_members (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- Create message headers table with partitioning
+-- Create message headers table
 CREATE TABLE IF NOT EXISTS message_headers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     channel_id UUID NOT NULL,
@@ -44,12 +44,8 @@ CREATE TABLE IF NOT EXISTS message_headers (
     is_deleted BOOLEAN NOT NULL DEFAULT false,
     creation_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (channel_id) REFERENCES channels(id),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    CONSTRAINT message_headers_date_partition CHECK (
-        creation_date >= DATE_TRUNC('month', creation_date) AND
-        creation_date < DATE_TRUNC('month', creation_date) + INTERVAL '1 month'
-    )
-) PARTITION BY RANGE (creation_date);
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 
 -- Create message contents table
 CREATE TABLE IF NOT EXISTS message_contents (
@@ -67,15 +63,6 @@ CREATE INDEX channels_state_idx ON channels(state) WHERE state = 'ACTIVE';
 CREATE INDEX message_headers_channel_date_idx ON message_headers(channel_id, creation_date DESC);
 CREATE INDEX message_headers_user_idx ON message_headers(user_id);
 
--- Create initial partitions
-CREATE TABLE message_headers_historical PARTITION OF message_headers
-    FOR VALUES FROM (MINVALUE) 
-    TO ('2025-01-01');
-
-CREATE TABLE message_headers_future PARTITION OF message_headers
-    FOR VALUES FROM ('2025-01-01') 
-    TO (MAXVALUE);
-
 -- Insert default region
 INSERT INTO regions (id, name) 
 VALUES ('DEFAULT', 'Default Region')
@@ -83,8 +70,6 @@ ON CONFLICT DO NOTHING;
 
 -- Down Migration
 DROP TABLE IF EXISTS message_contents;
-DROP TABLE IF EXISTS message_headers_current;
-DROP TABLE IF EXISTS message_headers_previous;
 DROP TABLE IF EXISTS message_headers;
 DROP TABLE IF EXISTS channel_members;
 DROP TABLE IF EXISTS channels;

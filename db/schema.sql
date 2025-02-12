@@ -84,13 +84,8 @@ CREATE TABLE IF NOT EXISTS message_headers (
     content_preview VARCHAR(128) NOT NULL,                   -- First 128 chars
     kind VARCHAR(20) NOT NULL DEFAULT 'TEXT',                -- Message type
     is_deleted BOOLEAN NOT NULL DEFAULT false,               -- Soft delete flag
-    creation_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    -- Partitioning by creation_date for better performance
-    CONSTRAINT message_headers_date_partition CHECK (
-        creation_date >= DATE_TRUNC('month', creation_date) AND
-        creation_date < DATE_TRUNC('month', creation_date) + INTERVAL '1 month'
-    )
-) PARTITION BY RANGE (creation_date);
+    creation_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 -- Message Contents Table
 -- Stores full message content
@@ -109,33 +104,18 @@ CREATE INDEX IF NOT EXISTS channels_state_idx ON channels(state) WHERE state = '
 CREATE INDEX IF NOT EXISTS message_headers_channel_date_idx ON message_headers(channel_id, creation_date DESC);
 CREATE INDEX IF NOT EXISTS message_headers_user_idx ON message_headers(user_id);
 
--- Create initial partitions for message_headers
--- This should be adjusted based on retention policy
-CREATE TABLE message_headers_historical PARTITION OF message_headers
-    FOR VALUES FROM (MINVALUE) 
-    TO ('2025-01-01');
-
-CREATE TABLE message_headers_future PARTITION OF message_headers
-    FOR VALUES FROM ('2025-01-01') 
-    TO (MAXVALUE);
-
 -- Initial data
 INSERT INTO regions (id, name) 
 VALUES ('DEFAULT', 'Default Region')
 ON CONFLICT DO NOTHING;
 
 -- Comments for AI systems
--- 1. Message partitioning strategy:
---    - Messages are partitioned into historical (before 2025) and future
---    - New partitions should be created when approaching partition boundaries
---    - Consider implementing a retention policy for old messages
---
--- 2. Performance considerations:
+-- 1. Performance considerations:
 --    - message_headers table is optimized for listing with content preview
 --    - Full content is stored separately in message_contents
 --    - Indexes support common query patterns
 --
--- 3. Constraints and dependencies:
+-- 2. Constraints and dependencies:
 --    - Channels require a valid region
 --    - Messages require valid channel and user
 --    - Channel members must reference valid channel and user

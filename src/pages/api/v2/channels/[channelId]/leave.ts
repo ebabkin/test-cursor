@@ -37,6 +37,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     const { channelId } = req.query;
 
     if (typeof channelId !== 'string') {
+        console.error('Invalid channel ID');
         return res.status(400).json({ message: 'Invalid channel ID' });
     }
 
@@ -44,13 +45,13 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         await channelService.leaveChannel(req.user!.id, channelId);
         res.status(200).json({ message: 'Successfully left channel' });
     } catch (error) {
+        console.error('Error leaving channel:', error);
         if (error.message === 'Channel not found') {
             return res.status(404).json({ message: error.message });
         }
         if (error.message === 'Cannot leave channel as owner') {
             return res.status(403).json({ message: error.message });
         }
-        console.error('Error leaving channel:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 }

@@ -71,6 +71,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     const { channelId } = req.query;
 
     if (typeof channelId !== 'string') {
+        console.error('Invalid channel ID');
         return res.status(400).json({ message: 'Invalid channel ID' });
     }
 
@@ -102,10 +103,10 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
             res.status(405).json({ message: 'Method not allowed' });
         }
     } catch (error) {
+        console.error('Error handling channel messages:', error);
         if (error.message === 'User is not a member of this channel') {
             return res.status(403).json({ message: error.message });
         }
-        console.error('Error handling channel messages:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 }

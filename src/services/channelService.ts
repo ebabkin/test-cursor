@@ -289,13 +289,34 @@ export class ChannelService {
             LEFT JOIN channel_members cm ON c.id = cm.channel_id
             WHERE c.is_private = false 
                 AND c.state = 'ACTIVE'
-                ${before ? 'AND c.last_message_date < $3' : ''}
+                ${before ? 'AND c.last_message_date < $2' : ''}
             GROUP BY c.id
             ORDER BY c.last_message_date DESC NULLS LAST
             LIMIT $1`,
             before ? [limit, before] : [limit]
         );
         console.log('result 1 ', result);
+        return result.rows;
+    }
+
+        /**
+     * List Channels where the user is a member
+     * Get a list of channels where the user is a member, sorted by last message date
+     */
+    async listUserChannels(userId: string, limit: number = 20, before?: Date): Promise<Channel[]> {
+        const result = await pool.query(
+            `SELECT c.*, 
+            (SELECT COUNT(cm.user_id) FROM channel_members cm WHERE cm.channel_id = c.id) as member_count
+            FROM channels c, channel_members cm2 
+            WHERE c.id = cm2.channel_id 
+                AND cm2.user_id = $1
+                AND c.state = 'ACTIVE'
+                ${before ? 'AND c.last_message_date < $3' : ''}
+            ORDER BY c.last_message_date DESC NULLS LAST
+            LIMIT $2`,
+            before ? [userId, limit, before] : [userId, limit]
+        );
+        console.log('result 2 ', result);
         return result.rows;
     }
 } 
