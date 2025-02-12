@@ -1,24 +1,23 @@
 import { Paper, Typography } from '@mui/material';
-import { Message } from '../types/chat';
+import { MessageV2 } from '../types/channel';
 
 interface MessageBubbleProps {
-  message: Message;
+  message: MessageV2;
+  isOwnMessage: boolean;
 }
 
-export default function MessageBubble({ message }: MessageBubbleProps) {
-  const isUser = message.sender === 'user';
-
+export default function MessageBubble({ message, isOwnMessage }: MessageBubbleProps) {
   return (
     <Paper
       elevation={1}
       sx={{
         p: 1,
         maxWidth: '70%',
-        alignSelf: isUser ? 'flex-end' : 'flex-start',
-        backgroundColor: isUser ? 'primary.light' : 'grey.100',
+        alignSelf: isOwnMessage ? 'flex-end' : 'flex-start',
+        backgroundColor: isOwnMessage ? 'primary.light' : 'grey.100',
       }}
     >
-      <Typography>{message.text}</Typography>
+      <Typography>{message.content}</Typography>
     </Paper>
   );
 } 
