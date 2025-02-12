@@ -219,3 +219,24 @@ Use M.UI for visuals.
 The app is available as a docker image, so for now we should add a docker file.
 
 Update readme with the info above and information how to run the app locally
+
+## [Unreleased]
+
+### Added
+- New UI implementation using v2 channel and messages API
+  - 30/70 split layout with channel list and chat interface using Material UI
+  - Create and join channel functionality with modals
+  - Direct channel access via URL
+  - Basic error handling for all operations
+  - User management within channels (add/remove)
+  - Next-auth integration for authentication
+  - Modern and consistent UI design using Material UI components
+
+### Changed
+- Replaced old UI with new implementation
+- Kept old messages API for backward compatibility
+- Migrated from custom styling to Material UI components
+
+### Notes
+- E2E UI tests need to be updated to match new interface
+- Messages polling and real-time updates to be implemented in future versions

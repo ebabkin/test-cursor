@@ -1,101 +1,270 @@
-import { useState } from 'react';
-import { Box, Paper, TextField, IconButton, Typography } from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
+import { Channel, MessageV2 } from '../types/channel';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Typography,
+  Alert,
+  Paper,
+  IconButton,
+  InputAdornment,
+} from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
-import MessageList from './MessageList';
-import { Message } from '../types/chat';
-import { useAuth } from '../contexts/AuthContext';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 
-export default function ChatInterface() {
-  const { user, token, isAuthenticated } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
+interface ChatInterfaceProps {
+  channel: Channel | null;
+}
+
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ channel }) => {
+  const { data: session } = useSession();
+  const [messages, setMessages] = useState<MessageV2[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [userIdentifier, setUserIdentifier] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = async () => {
-    if (!newMessage.trim()) return;
-
-    if (!isAuthenticated) {
-      setError('You must be logged in to send messages');
-      return;
+  useEffect(() => {
+    if (channel) {
+      fetchMessages();
+    } else {
+      setMessages([]);
     }
+  }, [channel]);
 
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now(),
-      text: newMessage,
-      sender: 'user',
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-
+  const fetchMessages = async () => {
+    if (!channel) return;
     try {
-      const response = await fetch('/api/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ message: newMessage }),
-      });
-
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-
+      const response = await fetch(`/api/v2/channels/${channel.id}/messages`);
+      if (!response.ok) throw new Error('Failed to fetch messages');
       const data = await response.json();
-      
-      // Add system response
-      const systemMessage: Message = {
-        id: Date.now() + 1,
-        text: data.response,
-        sender: 'system',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, systemMessage]);
-      setError(null);
+      setMessages(data);
+      scrollToBottom();
     } catch (error) {
-      console.error('Error sending message:', error);
-      setError('Failed to send message. Please try again.');
+      setError('Failed to load messages');
+      console.error(error);
     }
-
-    setNewMessage('');
   };
 
-  return (
-    <Paper elevation={3} sx={{ flex: 1, display: 'flex', flexDirection: 'column', m: 2 }}>
-      <MessageList messages={messages} />
-      {error && (
-        <Typography color="error" sx={{ px: 2, py: 1 }}>
-          {error}
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!channel || !newMessage.trim()) return;
+
+    try {
+      const response = await fetch(`/api/v2/channels/${channel.id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newMessage }),
+      });
+
+      if (!response.ok) throw new Error('Failed to send message');
+
+      const message = await response.json();
+      setMessages([...messages, message]);
+      setNewMessage('');
+      setError(null);
+      scrollToBottom();
+    } catch (error) {
+      setError('Failed to send message');
+      console.error(error);
+    }
+  };
+
+  const handleInviteUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!channel) return;
+
+    try {
+      const response = await fetch(`/api/v2/channels/${channel.id}/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIdentifier }),
+      });
+
+      if (!response.ok) throw new Error('Failed to invite user');
+
+      setIsInviteModalOpen(false);
+      setUserIdentifier('');
+      setError(null);
+    } catch (error) {
+      setError('Failed to invite user');
+      console.error(error);
+    }
+  };
+
+  const handleLeaveChannel = async () => {
+    if (!channel) return;
+
+    try {
+      const response = await fetch(`/api/v2/channels/${channel.id}/leave`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) throw new Error('Failed to leave channel');
+
+      window.location.href = '/'; // Redirect to home page
+    } catch (error) {
+      setError('Failed to leave channel');
+      console.error(error);
+    }
+  };
+
+  if (!session || !channel) {
+    return (
+      <Box
+        sx={{
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Typography color="text.secondary">
+          Select a channel to start chatting
         </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Channel Header */}
+      <Box
+        sx={{
+          p: 2,
+          borderBottom: 1,
+          borderColor: 'divider',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Typography variant="h6">{channel.title}</Typography>
+        <Box>
+          <IconButton
+            color="primary"
+            onClick={() => setIsInviteModalOpen(true)}
+            sx={{ mr: 1 }}
+          >
+            <PersonAddIcon />
+          </IconButton>
+          <IconButton color="error" onClick={() => setIsLeaveModalOpen(true)}>
+            <ExitToAppIcon />
+          </IconButton>
+        </Box>
+      </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ m: 2 }}>
+          {error}
+        </Alert>
       )}
-      <Box sx={{ p: 2, display: 'flex', gap: 1 }}>
+
+      {/* Messages */}
+      <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+        {messages.map((message) => (
+          <Box
+            key={message.id}
+            sx={{
+              mb: 2,
+              display: 'flex',
+              justifyContent: message.user_id === session.user.id ? 'flex-end' : 'flex-start',
+            }}
+          >
+            <Paper
+              elevation={1}
+              sx={{
+                maxWidth: '70%',
+                p: 2,
+                bgcolor: message.user_id === session.user.id ? 'primary.main' : 'grey.100',
+                color: message.user_id === session.user.id ? 'white' : 'text.primary',
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                {message.user_id === session.user.id ? 'You' : message.user_id}
+              </Typography>
+              <Typography>{message.content}</Typography>
+              <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', mt: 0.5 }}>
+                {new Date(message.creation_date).toLocaleString()}
+              </Typography>
+            </Paper>
+          </Box>
+        ))}
+        <div ref={messagesEndRef} />
+      </Box>
+
+      {/* Message Input */}
+      <Box component="form" onSubmit={handleSendMessage} sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
         <TextField
           fullWidth
-          variant="outlined"
-          placeholder={isAuthenticated ? "Type a message..." : "Please log in to send messages"}
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-          disabled={!isAuthenticated}
-          inputProps={{
-            'data-testid': 'message-input'
+          placeholder="Type a message..."
+          variant="outlined"
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  type="submit"
+                  disabled={!newMessage.trim()}
+                  color="primary"
+                >
+                  <SendIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
           }}
         />
-        <IconButton 
-          color="primary" 
-          onClick={handleSend}
-          disabled={!isAuthenticated}
-          data-testid="send-button"
-        >
-          <SendIcon />
-        </IconButton>
       </Box>
-    </Paper>
+
+      {/* Invite User Dialog */}
+      <Dialog open={isInviteModalOpen} onClose={() => setIsInviteModalOpen(false)}>
+        <DialogTitle>Add User</DialogTitle>
+        <form onSubmit={handleInviteUser}>
+          <DialogContent>
+            <TextField
+              label="User Email or Nickname"
+              value={userIdentifier}
+              onChange={(e) => setUserIdentifier(e.target.value)}
+              required
+              fullWidth
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsInviteModalOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="contained" color="primary">
+              Add
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      {/* Leave Channel Dialog */}
+      <Dialog open={isLeaveModalOpen} onClose={() => setIsLeaveModalOpen(false)}>
+        <DialogTitle>Leave Channel</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to leave this channel?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsLeaveModalOpen(false)}>Cancel</Button>
+          <Button onClick={handleLeaveChannel} variant="contained" color="error">
+            Leave
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
-} 
+}; 
