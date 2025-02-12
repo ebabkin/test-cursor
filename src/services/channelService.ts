@@ -25,6 +25,8 @@ export class ChannelService {
                 [code, data.region_id || 'DEFAULT', data.title, data.description, data.is_private, userId]
             );
             
+            console.log('channelResult', channelResult);
+
             // Add owner as member
             await client.query(
                 `INSERT INTO channel_members (channel_id, user_id, role)
@@ -293,7 +295,7 @@ export class ChannelService {
             LIMIT $1`,
             before ? [limit, before] : [limit]
         );
-        
+        console.log('result 1 ', result);
         return result.rows;
     }
 } 
