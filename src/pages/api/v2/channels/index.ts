@@ -42,8 +42,8 @@ const channelService = new ChannelService();
  *       400:
  *         description: Invalid input
  *   get:
- *     summary: List public channels
- *     description: Get a list of public channels, sorted by last message date
+ *     summary: List user channels
+ *     description: Get a list of user channels, sorted by last message date
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -69,7 +69,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
             const limit = parseInt(req.query.limit as string) || 20;
             const before = req.query.before ? new Date(req.query.before as string) : undefined;
 
-            const channels = await channelService.listPublicChannels(limit, before);
+            //const channels = await channelService.listPublicChannels(limit, before);
+            const channels = await channelService.listUserChannels(req.user!.id, limit, before);
             res.status(200).json(channels);
         } catch (error) {
             console.error('Error listing channels:', error);
@@ -86,6 +87,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         const data: CreateChannelDto = req.body;
         
         if (!data.title?.trim()) {
+            console.error('Title is required');
             return res.status(400).json({ message: 'Title is required' });
         }
 

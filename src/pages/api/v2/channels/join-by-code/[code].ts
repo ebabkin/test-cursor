@@ -33,10 +33,11 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method not allowed' });
     }
-
+    console.log('join-by-code', req.query);
     const { code } = req.query;
 
     if (typeof code !== 'string' || !/^[A-Z0-9]{6}$/.test(code)) {
+        console.error('Invalid channel code ', code);
         return res.status(400).json({ message: 'Invalid channel code' });
     }
 
@@ -44,13 +45,13 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         await channelService.joinChannelByCode(req.user!.id, code);
         res.status(200).json({ message: 'Successfully joined channel' });
     } catch (error) {
+        console.error('Error joining channel:', error);
         if (error.message === 'Channel not found or inactive') {
             return res.status(404).json({ message: error.message });
         }
         if (error.message === 'Cannot join private channel directly') {
             return res.status(403).json({ message: error.message });
         }
-        console.error('Error joining channel:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 }

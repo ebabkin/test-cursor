@@ -8,6 +8,14 @@ Key milestones include the transition from a simple messaging system to a full-f
 
 ## Version history
 
+### v0.13
+**Goal**: Introduce API level tests for channels and messages
+
+Let's introduce an API level test for the new APIs. Have a look at the e2e/api/users.test.sv for the best practices, but keep it intact, create another test for V2 APIs. 
+
+Have a look at the API and previous few records in Changelog, and suggest a happy path flow for two users, where one would create a few types of channels and another would join public and be added to private, also both sending messages. 
+
+Start the test with comment enumerating steps, and then implement the steps. Use clear user names/emails, channel names with reference to API tests
 
 ### v0.12
 **Goal**: Introduce channels and messages v2
@@ -16,15 +24,16 @@ Added support for channels and a new message system with improved scalability:
 1. Introduced channels with public/private visibility
 2. Added channel membership system
 3. Created new message structure with separate preview and content storage
-4. Implemented message partitioning by date for better performance
+4. Implemented message storage with headers (metadata + preview) and contents (full text) tables
 5. Added new v2 API endpoints for channels and messages
 6. Kept original message API for backward compatibility
 
 Key technical decisions:
-- Messages are partitioned by month for scalability
-- Message content is split into preview and full content tables
+- Message content is split into preview and full content tables for performance
 - Channel codes are auto-generated 6-character unique identifiers
 - All operations maintain data consistency using transactions
+- Message headers table uses simple UUID primary key for better compatibility
+- Indexes support efficient channel and user-based message queries
 
 @Codebase It's time to introduce channels and messages, which will be posted to the channels by the authenticated users.
 In this change we need to introduce DB structure changes and APIs, leaving UI for a later stage.

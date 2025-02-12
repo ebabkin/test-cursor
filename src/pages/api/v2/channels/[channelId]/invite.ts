@@ -50,6 +50,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     const { userIdentifier } = req.body;
 
     if (typeof channelId !== 'string' || !userIdentifier?.trim()) {
+        console.error('Invalid input');
         return res.status(400).json({ message: 'Invalid input' });
     }
 
@@ -57,6 +58,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         await channelService.inviteUser(req.user!.id, channelId, userIdentifier);
         res.status(200).json({ message: 'User successfully invited' });
     } catch (error) {
+        console.error('Error inviting user:', error);
         if (error.message === 'Channel not found') {
             return res.status(404).json({ message: error.message });
         }
@@ -66,7 +68,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         if (error.message === 'Not a channel member' || error.message === 'Channel is not private') {
             return res.status(403).json({ message: error.message });
         }
-        console.error('Error inviting user:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 }
