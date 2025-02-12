@@ -8,6 +8,19 @@ Key milestones include the transition from a simple messaging system to a full-f
 
 ## Version history
 
+### v0.14
+**Goal**: Update UI to use v2 channel and messages API
+
+Updating the UI to support channels while keeping the existing architecture:
+1. Split main screen into channels list and messages panel
+2. Add channel creation and join functionality
+3. Implement channel message viewing and sending
+4. Support channel management (add user, leave channel)
+5. Enable deep linking to specific channels
+6. Keep existing authentication UI and mechanisms
+
+Note: Existing UI tests are preserved for now and will be updated in a separate change.
+
 ### v0.13
 **Goal**: Introduce API level tests for channels and messages
 

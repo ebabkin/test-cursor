@@ -1,39 +1,37 @@
 import { Box } from '@mui/material';
+import { MessageV2 } from '../types/channel';
 import MessageBubble from './MessageBubble';
-import { Message } from '../types/chat';
 import { useEffect, useRef } from 'react';
 
 interface MessageListProps {
-  messages: Message[];
+  messages: MessageV2[];
+  currentUserId: string;
 }
 
-export default function MessageList({ messages }: MessageListProps) {
-  const messagesEndRef = useRef<null | HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+export default function MessageList({ messages, currentUserId }: MessageListProps) {
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollToBottom();
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   return (
-    <Box 
-      sx={{ 
-        flex: 1, 
-        overflowY: 'auto',
-        p: 2,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 1
-      }} 
-      data-testid="message-list"
-    >
+    <Box sx={{ 
+      flex: 1, 
+      overflow: 'auto',
+      p: 2,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 1
+    }}>
       {messages.map((message) => (
-        <MessageBubble key={message.id} message={message} />
+        <MessageBubble
+          key={message.id}
+          message={message}
+          isOwnMessage={message.user_id === currentUserId}
+        />
       ))}
-      <div ref={messagesEndRef} />
+      <div ref={bottomRef} />
     </Box>
   );
 } 
