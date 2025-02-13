@@ -3,6 +3,7 @@ import handler from '../../pages/api/v2/channels';
 import { pool } from '../../config/database';
 import { generateToken } from '../../utils/jwt';
 import { generateChannelCode } from '../../utils/channel';
+import { log } from 'console';
 
 jest.mock('../../config/database', () => ({
   pool: {
