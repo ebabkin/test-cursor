@@ -144,6 +144,33 @@ export class ChannelService {
         return result.rows;
     }
 
+    // MANUAL
+    /**
+     * Get channel info
+     * The user must be a channel member
+     */
+    async getChannelInfo(
+        channelId: string,
+        userId: string
+    ): Promise<Channel> {
+        // Verify user is member of channel
+        const memberCheck = await pool.query(
+            `SELECT 1 FROM channel_members 
+            WHERE channel_id = $1 AND user_id = $2`,
+            [channelId, userId]
+        );
+        
+        if (memberCheck.rowCount === 0) {
+            throw new Error('User is not a member of this channel');
+        }
+        
+        // Get Channel Info
+        const channelResult = await pool.query(
+            `SELECT * from channels where id = $1 limit 1`, [channelId]
+        );
+        return channelResult.rows[0];
+    }
+
     /**
      * Join a channel using its code
      * Join a public channel using its 6-character code
